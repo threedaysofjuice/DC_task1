@@ -22,18 +22,41 @@ public class WebServer {
             while (true) {
                 // Make the server socket wait for the next client request
                 Socket socket = serverSocket.accept();
+
                 System.out.println("Got connection!");
 
                 // To read input from the client
                 BufferedReader input = new BufferedReader(
                         new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
 
-                // Get request
-                HttpRequest request = HttpRequest.parse(input);
+                try {
+                    // Get request
+                    HttpRequest request = HttpRequest.parse(input);
 
-                // Process request
-                Processor proc = new Processor(socket, request);
-                proc.process();
+                    // Process request
+                    Processor proc = new Processor(socket, request);
+                    proc.start();
+                    ThreadPool threadPool = new ThreadPool(5, 15);
+
+                    for(int i=0; i<15; i++) {
+
+                        int taskNo = i;
+                        threadPool.execute( () -> {
+                            String message =
+                                    Thread.currentThread().getName()
+                                            + ": Task " + taskNo ;
+                            System.out.println(message);
+                        });
+                    }
+
+                    threadPool.waitUntilAllTasksFinished();
+                    threadPool.stop();
+
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
             }
         }
         catch (IOException ex) {
