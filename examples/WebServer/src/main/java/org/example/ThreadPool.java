@@ -1,51 +1,29 @@
 package org.example;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
+import java.util.LinkedList;
+import java.util.Queue;
 
 public class ThreadPool {
+    private final Queue<Input> queue;
 
-    private BlockingQueue taskQueue = null;
-    private List<PoolThreadRunnable> runnables = new ArrayList<>();
-    private boolean isStopped = false;
-
-    public ThreadPool(int noOfThreads, int maxNoOfTasks){
-        taskQueue = new ArrayBlockingQueue(maxNoOfTasks);
-
-        for(int i=0; i<noOfThreads; i++){
-            PoolThreadRunnable poolThreadRunnable =
-                    new PoolThreadRunnable(taskQueue);
-
-            runnables.add(new PoolThreadRunnable(taskQueue));
-        }
-        for(PoolThreadRunnable runnable : runnables){
-            new Thread(runnable).start();
-        }
+    public ThreadPool() {
+        this.queue = new LinkedList<>();
     }
 
-        public synchronized void  execute(Runnable task) throws Exception{
-        if(this.isStopped) throw
-                new IllegalStateException("ThreadPool is stopped");
-
-        this.taskQueue.offer(task);
+    // Put element in the queue.
+    public synchronized void add(Input elem) {
+        queue.add(elem);
+        notify();
     }
 
-    public synchronized void stop(){
-        this.isStopped = true;
-        for(PoolThreadRunnable runnable : runnables){
-            runnable.doStop();
+    // Wait for new element in the queue and return it.
+    public synchronized Input pop() throws InterruptedException {
+        while (queue.isEmpty()) {
+            wait();
         }
+        return this.queue.poll();
     }
 
-    public synchronized void waitUntilAllTasksFinished() {
-        while(this.taskQueue.size() > 0) {
-            try {
-                Thread.sleep(1);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
+    public synchronized int size() {
+        return queue.size();
     }
-
 }

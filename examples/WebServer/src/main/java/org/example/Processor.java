@@ -20,17 +20,17 @@ public class Processor extends Thread {
 
     //variables...
     //...
-    @Override
-    public void run() {
-        String resp = "";
-        try {
-
-            process();
-
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
+  //  @Override
+ //   public void run() {
+ //       String resp = "";
+   //     try {
+//
+  //          process();
+//
+  //      } catch (IOException e) {
+    //        throw new RuntimeException(e);
+      //  }
+ //   }
 
     public void process() throws IOException {
         String req = request.toString();
